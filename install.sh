@@ -7,11 +7,9 @@ read selDisk
 echo Create a hostname:
 read HOSTNAME
 
-echo Create a user:
-read USERNAME
+echo Default user is Taylor and password is 1989
 
-echo Add a password:
-read PASSWORD
+echo root password is root as default
 
 
 # Variables - adjust as needed
@@ -81,19 +79,23 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 echo root:root | chpasswd
 
 # Install essential packages
-pacman -S grub efibootmgr networkmanager nano dotnet-sdk iwd --noconfirm
+pacman -S grub efibootmgr networkmanager nano openssh sudo dotnet-sdk iwd --noconfirm
 
 # Install GRUB bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 
+# Config iwd
+echo "[General]\nEnableNetworkConfiguration=true" >> /etc/I'd/main.conf
+
 # Enable services
 systemctl enable NetworkManager
 systemctl enable iwd
+systemctl enable sshd
 
 # Create a new user
 useradd -m -G wheel $USERNAME
-echo $USERNAME:$PASSWORD | chpasswd
+echo Taylor:1989 | chpasswd
 
 # Allow wheel group to use sudo
 echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
