@@ -10,7 +10,7 @@ read HOSTNAME
 echo Default user is Taylor and password is 1989
 
 echo root password is root as default
-
+read
 
 # Variables - adjust as needed
 DISK="/dev/$selDisk"
