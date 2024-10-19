@@ -1,10 +1,21 @@
 #!/bin/bash
 
+#Get info from user for install
+echo What disk do you want to install Arch to?
+read selDisk
+
+echo Create a hostname:
+read HOSTNAME
+
+echo Create a user:
+read USERNAME
+
+echo Add a password:
+read PASSWORD
+
+
 # Variables - adjust as needed
-DISK="/dev/sda"  # Replace 'sdX' with your disk, e.g., /dev/sda
-HOSTNAME="archserver"
-USERNAME="danshack"
-PASSWORD="gbcd"
+DISK="/dev/$selDisk"
 
 # Update system clock
 timedatectl set-ntp true
@@ -52,13 +63,13 @@ echo "Entering chroot environment..."
 arch-chroot /mnt /bin/bash <<EOF
 
 # Set time zone
-ln -sf /usr/share/zoneinfo/Region/City /etc/localtime
+ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 hwclock --systohc
 
 # Localization
-echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "LANG=en_GB.UTF-8" > /etc/locale.conf
 
 # Network configuration
 echo "$HOSTNAME" > /etc/hostname
@@ -67,10 +78,10 @@ echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
 # Set root password
-echo root:$PASSWORD | chpasswd
+echo root:root | chpasswd
 
 # Install essential packages
-pacman -S grub efibootmgr networkmanager --noconfirm
+pacman -S grub efibootmgr networkmanager nano dotnet-sdk iwd --noconfirm
 
 # Install GRUB bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
@@ -78,6 +89,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 # Enable services
 systemctl enable NetworkManager
+systemctl enable iwd
 
 # Create a new user
 useradd -m -G wheel $USERNAME
