@@ -13,7 +13,7 @@ read laptop
 echo Create a user:
 read USERNAME
 echo Add a password:
-read $PASSWORD
+read PASSWORD
 
 echo root password is root as default
 read
@@ -116,7 +116,7 @@ echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 # Add custom commands & edit .bashrc
 cp /bin/pacman /bin/pac
 if [ $laptop = "y" ]; then
-  pacman -S acpi
+  pacman -S acpi --noconfirm
   echo "export PS1='[$acpi -b | grep -P -o "[0-9]+(?=%)")%]\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
 else
   echo "export PS1='\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
