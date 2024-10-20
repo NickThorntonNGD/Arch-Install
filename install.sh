@@ -1,22 +1,23 @@
 #!/bin/bash
 
-#Get info from user for install
-echo What disk do you want to install Arch to?
-read selDisk
+# Get info from user for install
+echo "What disk do you want to install Arch to? (e.g., sda)"
+read -r selDisk
 
-echo Create a hostname:
-read HOSTNAME
+echo "Create a hostname:"
+read -r HOSTNAME
 
 echo "Are you on a laptop? (y/n)"
-read laptop
-  
-echo Create a user:
-read USERNAME
-echo Add a password:
-read PASSWORD
+read -r laptop
 
-echo root password is root as default
-read
+echo "Create a user:"
+read -r USERNAME
+echo "Add a password:"
+read -r PASSWORD
+
+echo "Default root password is 'root'. Press Enter to continue."
+echo "For installation purposes a temporary user is created. The credentials are temp and temp"
+read -r
 
 # Variables - adjust as needed
 DISK="/dev/$selDisk"
@@ -27,31 +28,40 @@ timedatectl set-ntp true
 # Partition the disk (modify as needed)
 echo "Partitioning the disk..."
 (
-  echo o      # Create a new empty DOS partition table
-  echo n      # Add a new partition (primary)
-  echo p
-  echo 1      # Partition number
+  echo g      # Create a new empty GPT partition table
+  echo n      # Create new EFI partition
+  echo        # Default partition number (1)
   echo        # Default - start at beginning of disk
-  echo +512M  # Size for boot partition
+  echo +512M  # Size for EFI partition
+  echo t      # Set type for partition
+  echo 1      # Type 1 (EFI System)
   echo n      # Add another partition (root)
-  echo p
-  echo 2
+  echo        # Default partition number (2)
   echo        # Default - start immediately after preceding partition
   echo        # Default - extend to end of disk
-  echo a      # Make partition 1 bootable
-  echo 1
   echo w      # Write changes
-) | fdisk $DISK
+) | fdisk "$DISK"
 
 # Format partitions
 echo "Formatting partitions..."
-mkfs.ext4 "${DISK}2"
-mkfs.fat -F32 "${DISK}1"
+if mkfs.fat -F32 "${DISK}1"; then
+  echo "EFI partition formatted successfully."
+else
+  echo "Failed to format EFI partition. Please check the disk."
+  exit 1
+fi
+
+if mkfs.ext4 "${DISK}2"; then
+  echo "Root partition formatted successfully."
+else
+  echo "Failed to format root partition. Please check the disk."
+  exit 1
+fi
 
 # Mount the file systems
 echo "Mounting partitions..."
 mount "${DISK}2" /mnt
-mkdir /mnt/boot
+mkdir -p /mnt/boot
 mount "${DISK}1" /mnt/boot
 
 # Install base packages
@@ -82,22 +92,27 @@ echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
 # Set root password
-echo root:root | chpasswd
+echo "root:root" | chpasswd
 
 # Install essential packages
 pacman -S grub efibootmgr networkmanager nano openssh sudo dotnet-sdk iwd bash-completion --noconfirm
 pacman -S --needed base-devel git wget curl --noconfirm
 
-git clone https://aur.archlinux.org/yay.git
-cd yay/
-makepkg -si
-
+# Install yay AUR helper
+useradd "temp"
+echo "temp:temp" | chpasswd
+echo "temp" | su temp
+git clone https://aur.archlinux.org/yay.git /tmp/yay
+cd /tmp/yay || { echo "Failed to change directory to yay"; exit 1; }
+makepkg -si --noconfirm
+echo "root" | su
 # Install GRUB bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Config iwd
-echo "[General]\nEnableNetworkConfiguration=true" >> /etc/I'd/main.conf
+mkdir -p /etc/iwd
+echo "[General]\nEnableNetworkConfiguration=true" >> /etc/iwd/main.conf
 
 # Enable services
 systemctl enable NetworkManager
@@ -107,26 +122,27 @@ systemctl enable systemd-resolved
 systemctl enable sshd
 
 # Create a new user
-useradd -m -G wheel $USERNAME
-echo $USERNAME:$PASSWORD | chpasswd
+useradd -m -G wheel "$USERNAME"
+echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Allow wheel group to use sudo
 echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 
 # Add custom commands & edit .bashrc
 cp /bin/pacman /bin/pac
-if [ $laptop = "y" ]; then
+if [ "$laptop" = "y" ]; then
   pacman -S acpi --noconfirm
-  echo "export PS1='[$acpi -b | grep -P -o "[0-9]+(?=%)")%]\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
+  echo "export PS1='[\$(acpi -b | grep -P -o '[0-9]+(?=%)')%]\u@\h: \w\$'" >> "/home/$USERNAME/.bashrc"
 else
-  echo "export PS1='\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
+  echo "export PS1='\u@\h: \w\$'" >> "/home/$USERNAME/.bashrc"
 fi
 
-echo "KEYMAP=uk" >>/etc/vconsole.conf
+echo "KEYMAP=uk" >> /etc/vconsole.conf
 
-printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> /home/$USERNAME/.bashrc
+printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> "/home/$USERNAME/.bashrc"
 
 complete -cf sudo
+userdel temp
 
 EOF
 
