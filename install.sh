@@ -101,11 +101,11 @@ pacman -S --needed base-devel git wget curl --noconfirm
 # Install yay AUR helper
 useradd "temp"
 echo "temp:temp" | chpasswd
-echo "temp" | su temp
+
 git clone https://aur.archlinux.org/yay.git /tmp/yay
 cd /tmp/yay || { echo "Failed to change directory to yay"; exit 1; }
-makepkg -si --noconfirm
-echo "root" | su
+su - temp -c "makepkg -si --noconfirm"
+
 # Install GRUB bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
