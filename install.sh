@@ -124,7 +124,7 @@ fi
 
 echo "KEYMAP=uk" >>/etc/vconsole.conf
 
-printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> ~/.bashrc
+printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> /home/$USERNAME/.bashrc
 
 complete -cf sudo
 
