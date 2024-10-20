@@ -101,7 +101,7 @@ pacman -S --needed base-devel git wget curl --noconfirm
 # Install yay AUR helper
 useradd "temp"
 echo "temp:temp" | chpasswd
-
+chown -R temp:temp /tmp/yay
 git clone https://aur.archlinux.org/yay.git /tmp/yay
 cd /tmp/yay || { echo "Failed to change directory to yay"; exit 1; }
 su - temp -c "makepkg -si --noconfirm"
@@ -140,6 +140,8 @@ fi
 echo "KEYMAP=uk" >> /etc/vconsole.conf
 
 printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> "/home/$USERNAME/.bashrc"
+
+cp /bin/clear /bin/cls
 
 complete -cf sudo
 userdel temp
