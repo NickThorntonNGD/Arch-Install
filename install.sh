@@ -7,7 +7,13 @@ read selDisk
 echo Create a hostname:
 read HOSTNAME
 
-echo Default user is Taylor and password is 1989
+echo Are you on a laptop? (y/n)
+read laptop
+  
+echo Create a user:
+read USERNAME
+echo Add a password:
+read $PASSWORD
 
 echo root password is root as default
 read
@@ -80,6 +86,11 @@ echo root:root | chpasswd
 
 # Install essential packages
 pacman -S grub efibootmgr networkmanager nano openssh sudo dotnet-sdk iwd --noconfirm
+pacman -S --needed base-devel git wget curl --noconfirm
+
+git clone https://aur.archlinux.org/yay.git
+cd yay/
+makepkg -si
 
 # Install GRUB bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
@@ -96,11 +107,20 @@ systemctl enable systemd-resolved
 systemctl enable sshd
 
 # Create a new user
-useradd -m -G wheel Taylor
-echo Taylor:1989 | chpasswd
+useradd -m -G wheel $USERNAME
+echo $USERNAME:$PASSWORD | chpasswd
 
 # Allow wheel group to use sudo
 echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+
+# Add custom commands & edit .bashrc
+cp /bin/pacman /bin/pac
+if [ $laptop = "y" ]; then
+  pacman -S acpi
+  echo "export PS1='[$acpi -b | grep -P -o "[0-9]+(?=%)")%]\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
+else
+  echo "export PS1='\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
+fi
 
 EOF
 
