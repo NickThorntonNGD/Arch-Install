@@ -27,7 +27,7 @@ timedatectl set-ntp true
 # Partition the disk (modify as needed)
 echo "Partitioning the disk..."
 (
-  echo g      # Create a new empty GPT partition table
+  echo o      # Create a new empty GPT partition table
   echo n      # Create new EFI partition
   echo        # Default partition number (1)
   echo        # Default - start at beginning of disk
