@@ -27,7 +27,7 @@ timedatectl set-ntp true
 # Partition the disk (modify as needed)
 echo "Partitioning the disk..."
 (
-  echo o      # Create a new empty GPT partition table
+  echo g      # Create a new empty GPT partition table
   echo n      # Create new EFI partition
   echo        # Default partition number (1)
   echo        # Default - start at beginning of disk
@@ -43,13 +43,17 @@ echo "Partitioning the disk..."
 
 # Format partitions
 echo "Formatting partitions..."
-if ! mkfs.fat -F32 "${DISK}1"; then
-  echo "Failed to format EFI partition."
+if mkfs.fat -F32 "${DISK}1"; then
+  echo "EFI partition formatted successfully."
+else
+  echo "Failed to format EFI partition. Please check the disk."
   exit 1
 fi
 
-if ! mkfs.ext4 "${DISK}2"; then
-  echo "Failed to format root partition."
+if mkfs.ext4 "${DISK}2"; then
+  echo "Root partition formatted successfully."
+else
+  echo "Failed to format root partition. Please check the disk."
   exit 1
 fi
 
