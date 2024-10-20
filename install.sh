@@ -91,10 +91,12 @@ echo "[General]\nEnableNetworkConfiguration=true" >> /etc/I'd/main.conf
 # Enable services
 systemctl enable NetworkManager
 systemctl enable iwd
+systemctl enable systemd-networkd
+systemctl enable systemd-resolved
 systemctl enable sshd
 
 # Create a new user
-useradd -m -G wheel $USERNAME
+useradd -m -G wheel Taylor
 echo Taylor:1989 | chpasswd
 
 # Allow wheel group to use sudo
