@@ -122,6 +122,8 @@ else
   echo "export PS1='\u@\h: \w\$'" >> /home/$USERNAME/.bashrc
 fi
 
+echo "KEYMAP=uk" >>/etc/vconsole.conf
+
 EOF
 
 # Unmount and reboot
