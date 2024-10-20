@@ -7,7 +7,7 @@ read selDisk
 echo Create a hostname:
 read HOSTNAME
 
-echo Are you on a laptop? (y/n)
+echo "Are you on a laptop? (y/n)"
 read laptop
   
 echo Create a user:
