@@ -85,7 +85,7 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 echo root:root | chpasswd
 
 # Install essential packages
-pacman -S grub efibootmgr networkmanager nano openssh sudo dotnet-sdk iwd --noconfirm
+pacman -S grub efibootmgr networkmanager nano openssh sudo dotnet-sdk iwd bash-completion --noconfirm
 pacman -S --needed base-devel git wget curl --noconfirm
 
 git clone https://aur.archlinux.org/yay.git
@@ -123,6 +123,10 @@ else
 fi
 
 echo "KEYMAP=uk" >>/etc/vconsole.conf
+
+printf '\nif [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\nfi\n' >> ~/.bashrc
+
+complete -cf sudo
 
 EOF
 
